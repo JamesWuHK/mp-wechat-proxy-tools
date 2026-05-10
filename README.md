@@ -12,11 +12,19 @@ It only contains the customer/WorkBuddy CLI that calls the hosted `/agent/...` A
 
 ## Pricing
 
-- Free trial: bind your公众号 and publish up to 3 articles for free
-- First paid month: `¥9.90`
-- Second month onward: `¥29.90 / month`
-- Up to 2公众号 are included in the base monthly plan
-- More than 2公众号: `¥9.90 / month` for each extra公众号
+The current pricing is maintained by the service-side admin API and should be read from:
+
+```bash
+mp-proxy subscription
+```
+
+The default product policy is:
+
+- Free trial article quota
+- First paid month price
+- Recurring monthly price from month 2 onward
+- Included公众号 count in the base plan
+- Extra monthly price for each公众号 above the included count
 
 ## WorkBuddy Entry Point
 
