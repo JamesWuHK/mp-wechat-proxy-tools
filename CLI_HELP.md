@@ -169,7 +169,13 @@ Tell them:
 
 ### Missing credentials
 
-Run:
+For a first-time customer, run signup first:
+
+```bash
+mp-proxy signup "<tenant>" <account_name> <appid> <appsecret> [display_name]
+```
+
+Then run:
 
 ```bash
 mp-proxy doctor
@@ -177,7 +183,13 @@ mp-proxy doctor
 
 ### Invalid agent
 
-If `mp-proxy onboarding` returns `invalid agent`, the local Agent credentials are invalid or expired. Ask the service operator to issue valid Agent credentials.
+If `mp-proxy onboarding` returns `invalid agent`, first check whether signup has already been run:
+
+```bash
+mp-proxy doctor
+```
+
+If local Agent credentials are missing, run `mp-proxy signup ...`. If credentials exist but still fail, ask the service operator to reactivate or regenerate that Agent.
 
 ### Pricing question
 

@@ -22,6 +22,28 @@ function waitForHealth(baseUrl, timeoutMs = 5000) {
   });
 }
 
+async function startWechatTokenUpstream(validAppid = "wx-demo-appid", validSecret = "demo-secret") {
+  const http = require("node:http");
+  const upstream = http.createServer((req, res) => {
+    const url = new URL(req.url, "http://127.0.0.1");
+    if (req.method === "GET" && url.pathname === "/cgi-bin/token") {
+      const appid = url.searchParams.get("appid");
+      const secret = url.searchParams.get("secret");
+      res.writeHead(200, { "Content-Type": "application/json" });
+      if (appid === validAppid && secret === validSecret) {
+        res.end(JSON.stringify({ access_token: "demo-token", expires_in: 7200 }));
+      } else {
+        res.end(JSON.stringify({ errcode: 40013, errmsg: "invalid appid" }));
+      }
+      return;
+    }
+    res.writeHead(404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ errcode: 404, errmsg: "not found" }));
+  });
+  await new Promise((resolve) => upstream.listen(0, "127.0.0.1", resolve));
+  return upstream;
+}
+
 test("public CLI signup saves credentials and reads subscription", async () => {
   const repoRoot = path.resolve(__dirname, "..", "..", "mp-wechat-proxy");
   const cliRoot = path.resolve(__dirname, "..");
@@ -39,6 +61,8 @@ test("public CLI signup saves credentials and reads subscription", async () => {
   fs.writeFileSync(ordersFile, "{}\n");
   fs.writeFileSync(payEnvFile, "");
 
+  const upstream = await startWechatTokenUpstream();
+  const upstreamPort = upstream.address().port;
   const port = 21080 + Math.floor(Math.random() * 1000);
   const serverEnv = {
     ...process.env,
@@ -46,7 +70,7 @@ test("public CLI signup saves credentials and reads subscription", async () => {
     PROXY_API_KEY: "test-proxy-key",
     ADMIN_API_KEY: "test-admin-key",
     ADMIN_SIGNING_SECRET: "test-admin-signing-secret",
-    UPSTREAM_BASE: "https://api.weixin.qq.com",
+    UPSTREAM_BASE: `http://127.0.0.1:${upstreamPort}`,
     ACCOUNTS_FILE: accountsFile,
     AGENTS_FILE: agentsFile,
     REMINDER_STATE_FILE: remindersFile,
@@ -91,6 +115,9 @@ test("public CLI signup saves credentials and reads subscription", async () => {
     assert.match(savedEnv, /MP_AGENT_ID=/);
     assert.match(savedEnv, /MP_AGENT_KEY=/);
     assert.match(savedEnv, /MP_AGENT_SIGNING_SECRET=/);
+    assert.match(savedEnv, /MP_PROXY_BASE_URL=http:\/\/127\.0\.0\.1:/);
+    assert.doesNotMatch(savedEnv, /PATH=/);
+    assert.doesNotMatch(savedEnv, /HOME=/);
 
     const subscription = await runCli(["subscription"]);
     assert.strictEqual(subscription.code, 0, subscription.stderr);
@@ -99,6 +126,7 @@ test("public CLI signup saves credentials and reads subscription", async () => {
     assert.strictEqual(subscriptionBody.data.plan.nextChargeCents, 990);
   } finally {
     child.kill("SIGTERM");
+    upstream.close();
   }
 });
 
@@ -120,6 +148,8 @@ test("public CLI subscription reflects server-managed pricing", async () => {
   fs.writeFileSync(ordersFile, "{}\n");
   fs.writeFileSync(payEnvFile, "");
 
+  const upstream = await startWechatTokenUpstream();
+  const upstreamPort = upstream.address().port;
   const port = 23080 + Math.floor(Math.random() * 1000);
   const serverEnv = {
     ...process.env,
@@ -127,7 +157,7 @@ test("public CLI subscription reflects server-managed pricing", async () => {
     PROXY_API_KEY: "test-proxy-key",
     ADMIN_API_KEY: "test-admin-key",
     ADMIN_SIGNING_SECRET: "test-admin-signing-secret",
-    UPSTREAM_BASE: "https://api.weixin.qq.com",
+    UPSTREAM_BASE: `http://127.0.0.1:${upstreamPort}`,
     ACCOUNTS_FILE: accountsFile,
     AGENTS_FILE: agentsFile,
     REMINDER_STATE_FILE: remindersFile,
@@ -233,5 +263,6 @@ fetch("http://127.0.0.1:${port}/admin/pricing", {
     assert.strictEqual(pricingBody.data.pricing.recurringMonthPriceCents, 3999);
   } finally {
     child.kill("SIGTERM");
+    upstream.close();
   }
 });

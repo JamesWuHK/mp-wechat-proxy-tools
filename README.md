@@ -54,30 +54,33 @@ curl -fsSLo /tmp/mp-wechat-proxy-install.sh https://raw.githubusercontent.com/Ja
 sh /tmp/mp-wechat-proxy-install.sh https://github.com/JamesWuHK/mp-wechat-proxy-tools.git
 ```
 
-## Required Credentials
+## First-Time Credentials
 
-WorkBuddy needs only agent credentials from the service operator:
+First-time signup does **not** need pre-issued Agent credentials.
 
-```text
-MP_AGENT_ID
-MP_AGENT_KEY
-MP_AGENT_SIGNING_SECRET
-```
-
-## Configure
+WorkBuddy should install the CLI, ask the customer for their公众号 AppID/AppSecret, then run:
 
 ```bash
-mp-proxy setup
-vim ~/.mp-wechat-proxy/.env
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
 ```
 
-Example `.env`:
+On success, signup automatically writes these local credentials into `~/.mp-wechat-proxy/.env`:
 
 ```text
 MP_PROXY_BASE_URL=https://mp.wanli.wiki
-MP_AGENT_ID=agent_xxx
+MP_AGENT_ID=...
 MP_AGENT_KEY=...
 MP_AGENT_SIGNING_SECRET=...
+```
+
+Only commands after signup, such as `onboarding`, `accounts`, `subscription`, and `bind-account`, require those saved Agent credentials.
+
+## Configure
+
+Usually no manual config is needed before signup. If needed, initialize the local env file with:
+
+```bash
+mp-proxy setup
 ```
 
 
@@ -102,22 +105,15 @@ mp-proxy bind-account school-b wx... appsecret... 某机构
 
 ## If Onboarding Returns `invalid agent`
 
-The CLI is installed, but the Agent credentials in `~/.mp-wechat-proxy/.env` are not valid server-side credentials. Ask the service operator to generate real values for:
+This is a recovery path, not the normal first-time path. The normal path is `mp-proxy signup ...`, which creates and saves Agent credentials automatically.
 
-```text
-MP_AGENT_ID
-MP_AGENT_KEY
-MP_AGENT_SIGNING_SECRET
-```
-
-Then update `~/.mp-wechat-proxy/.env` and run:
+If signup already succeeded but `mp-proxy onboarding` later returns `invalid agent`, run:
 
 ```bash
 mp-proxy doctor
-mp-proxy onboarding
 ```
 
-Do not proceed to `mp-proxy bind-account` until onboarding succeeds.
+If the local `MP_AGENT_*` fields are missing, rerun `mp-proxy signup ...`. If all fields exist but the server still rejects them, ask the service operator to regenerate or reactivate that Agent.
 
 
 ## Add A公众号

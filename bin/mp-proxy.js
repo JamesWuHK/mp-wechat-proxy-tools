@@ -29,6 +29,10 @@ Usage:
   mp-proxy doctor
 
 Required customer/WorkBuddy credentials:
+  None for first-time signup.
+  signup writes Agent credentials into .env automatically.
+
+Credentials used after signup:
   MP_AGENT_ID
   MP_AGENT_KEY
   MP_AGENT_SIGNING_SECRET
@@ -124,7 +128,7 @@ function agentCredentials() {
   const agentKey = env.MP_AGENT_KEY;
   const signingSecret = env.MP_AGENT_SIGNING_SECRET;
   if (!agentId || !agentKey || !signingSecret) {
-    fail("Missing MP_AGENT_ID, MP_AGENT_KEY, or MP_AGENT_SIGNING_SECRET. Ask the service operator for WorkBuddy Agent credentials and put MP_AGENT_ID, MP_AGENT_KEY, and MP_AGENT_SIGNING_SECRET in .env.");
+    fail("Missing MP_AGENT_ID, MP_AGENT_KEY, or MP_AGENT_SIGNING_SECRET. For first-time setup, run: mp-proxy signup TENANT ACCOUNT_NAME APPID APPSECRET [DISPLAY_NAME].");
   }
   return { agentId, agentKey, signingSecret };
 }
@@ -132,11 +136,14 @@ function agentCredentials() {
 function saveAgentCredentials(agentId, agentKey, signingSecret) {
   const file = envPath();
   const env = readEnv();
-  env.MP_AGENT_ID = agentId;
-  env.MP_AGENT_KEY = agentKey;
-  env.MP_AGENT_SIGNING_SECRET = signingSecret;
-  const keys = Object.keys(env).filter(Boolean).sort();
-  const content = `${keys.map((key) => `${key}=${env[key]}`).join("\n")}\n`;
+  const next = {
+    MP_PROXY_BASE_URL: env.MP_PROXY_BASE_URL || defaultBaseUrl,
+    MP_AGENT_ID: agentId,
+    MP_AGENT_KEY: agentKey,
+    MP_AGENT_SIGNING_SECRET: signingSecret,
+  };
+  const keys = Object.keys(next).sort();
+  const content = `${keys.map((key) => `${key}=${next[key]}`).join("\n")}\n`;
   writeFile600(file, content);
 }
 

@@ -6,13 +6,9 @@ This is the agent-readable entrypoint. If WorkBuddy receives a link to this file
 
 This public repository is **agent/customer side only**.
 
-WorkBuddy only needs these agent credentials from the service operator:
+First-time customers do **not** need pre-issued Agent credentials.
 
-```text
-MP_AGENT_ID
-MP_AGENT_KEY
-MP_AGENT_SIGNING_SECRET
-```
+WorkBuddy should start with `mp-proxy signup ...`. Signup creates the customer Agent, binds the first公众号, and writes Agent credentials locally.
 
 ## What This Installs
 
@@ -76,19 +72,19 @@ The installer creates:
 ~/.mp-wechat-proxy/.env
 ```
 
-Put only agent credentials in it:
+For a first-time customer, WorkBuddy usually does not edit this file manually. Run signup first:
+
+```bash
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
+```
+
+On success, signup writes the Agent credentials into `~/.mp-wechat-proxy/.env` automatically:
 
 ```text
 MP_PROXY_BASE_URL=https://mp.wanli.wiki
-MP_AGENT_ID=agent_xxx
+MP_AGENT_ID=...
 MP_AGENT_KEY=...
 MP_AGENT_SIGNING_SECRET=...
-```
-
-If the user does not have these values, tell them:
-
-```text
-请联系服务方为你的 WorkBuddy 生成 Agent 凭据。
 ```
 
 ## Main Flow
@@ -135,11 +131,15 @@ node ~/.mp-wechat-proxy/bin/mp-proxy.js health
 
 ## If `mp-proxy onboarding` Returns `invalid agent`
 
-This means the CLI installed correctly, but the Agent credentials in `~/.mp-wechat-proxy/.env` are not real server-side credentials, are expired, or were revoked. In the normal self-serve flow this should only happen after `mp-proxy signup` already created real credentials and wrote them locally.
+This is a recovery path, not the normal first-time path.
 
-WorkBuddy cannot fix this by asking the customer for any other key. WorkBuddy should not ask for service-side credentials.
+Normal first-time path:
 
-WorkBuddy should do exactly this:
+```bash
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
+```
+
+Signup should create and save Agent credentials automatically. If onboarding later returns `invalid agent`, WorkBuddy should do exactly this:
 
 1. Run:
 
@@ -147,28 +147,12 @@ WorkBuddy should do exactly this:
 mp-proxy doctor
 ```
 
-2. If `hasAgentId`, `hasAgentKey`, or `hasAgentSigningSecret` is `false`, tell the customer:
-
-```text
-CLI 已安装成功，但还没有配置服务方签发的 Agent 凭据。请联系服务方获取 MP_AGENT_ID、MP_AGENT_KEY、MP_AGENT_SIGNING_SECRET，并把它们填入 ~/.mp-wechat-proxy/.env。
-```
+2. If `hasAgentId`, `hasAgentKey`, or `hasAgentSigningSecret` is `false`, rerun the normal signup flow. Do not ask the customer for service-side credentials.
 
 3. If all three fields are present but `mp-proxy onboarding` still returns `invalid agent`, tell the customer:
 
 ```text
-CLI 已安装成功，但当前 Agent 凭据没有被服务端认可，可能是占位符、已过期、被停用或复制错误。请联系服务方重新生成 Agent 凭据。
-```
-
-4. Give the customer this handoff message to send to the service operator:
-
-```text
-请为我的 WorkBuddy 生成一组可用的 Agent 凭据：MP_AGENT_ID、MP_AGENT_KEY、MP_AGENT_SIGNING_SECRET。当前 mp-proxy doctor 显示 CLI 已安装，但 mp-proxy onboarding 返回 invalid agent。
-```
-
-5. After the service operator provides new Agent credentials, update:
-
-```text
-~/.mp-wechat-proxy/.env
+CLI 已安装成功，但当前自动注册生成的 Agent 凭据没有被服务端认可，可能是已过期、被停用或本地 .env 被覆盖。请联系服务方重新生成或恢复该 Agent。
 ```
 
 Then verify:
@@ -276,14 +260,20 @@ mp-proxy agent POST /agent/accounts '{"name":"school-a","tenant":"某机构","ap
 4. Use `mp-proxy bind-account` to add additional公众号.
 5. Use `mp-proxy subscription` to explain free quota and paid pricing.
 6. Use `mp-proxy status` to check service state.
-5. If credentials are invalid, tell the customer to contact the service operator for new Agent credentials.
+7. If Agent credentials are missing for a first-time customer, run signup instead of asking the customer for service-side credentials.
 
 ## Troubleshooting
 
 ### `Missing MP_AGENT_ID, MP_AGENT_KEY, or MP_AGENT_SIGNING_SECRET`
 
-The WorkBuddy install is missing agent credentials. Ask the service operator to generate Agent credentials and place them in `~/.mp-wechat-proxy/.env`.
+For a first-time customer, this means signup has not completed yet. Run:
+
+```bash
+mp-proxy signup "<tenant>" <account_name> <appid> <appsecret> [display_name]
+```
+
+If signup already succeeded before and the local `.env` was lost, rerun signup or ask the service operator to restore that Agent.
 
 ### `401 invalid agent` or `invalid agent key`
 
-The agent credentials are wrong, expired, suspended, or revoked. Ask the service operator to rotate or reactivate the Agent.
+If signup has not completed yet, run signup first. If signup did complete and `.env` contains `MP_AGENT_ID`, `MP_AGENT_KEY`, and `MP_AGENT_SIGNING_SECRET`, the Agent may be expired, suspended, or revoked. Ask the service operator to rotate or reactivate that Agent.
