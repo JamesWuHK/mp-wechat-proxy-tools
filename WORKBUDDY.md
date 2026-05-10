@@ -92,6 +92,88 @@ node ~/.mp-wechat-proxy/bin/mp-proxy.js health
 ```
 
 
+
+## If `mp-proxy onboarding` Returns `invalid agent`
+
+This means the CLI installed correctly, but the Agent credentials in `~/.mp-wechat-proxy/.env` are not real server-side credentials, are expired, or were revoked.
+
+WorkBuddy cannot fix this by asking the customer for any other key. WorkBuddy should not ask for service-side credentials.
+
+WorkBuddy should do exactly this:
+
+1. Run:
+
+```bash
+mp-proxy doctor
+```
+
+2. If `hasAgentId`, `hasAgentKey`, or `hasAgentSigningSecret` is `false`, tell the customer:
+
+```text
+CLI 已安装成功，但还没有配置服务方签发的 Agent 凭据。请联系服务方获取 MP_AGENT_ID、MP_AGENT_KEY、MP_AGENT_SIGNING_SECRET，并把它们填入 ~/.mp-wechat-proxy/.env。
+```
+
+3. If all three fields are present but `mp-proxy onboarding` still returns `invalid agent`, tell the customer:
+
+```text
+CLI 已安装成功，但当前 Agent 凭据没有被服务端认可，可能是占位符、已过期、被停用或复制错误。请联系服务方重新生成 Agent 凭据。
+```
+
+4. Give the customer this handoff message to send to the service operator:
+
+```text
+请为我的 WorkBuddy 生成一组可用的 Agent 凭据：MP_AGENT_ID、MP_AGENT_KEY、MP_AGENT_SIGNING_SECRET。当前 mp-proxy doctor 显示 CLI 已安装，但 mp-proxy onboarding 返回 invalid agent。
+```
+
+5. After the service operator provides new Agent credentials, update:
+
+```text
+~/.mp-wechat-proxy/.env
+```
+
+Then verify:
+
+```bash
+mp-proxy doctor
+mp-proxy onboarding
+mp-proxy status
+```
+
+Only after `mp-proxy onboarding` succeeds should WorkBuddy ask the customer for公众号 AppID/AppSecret and run `mp-proxy bind-account`.
+
+
+## If No Official Account Is Bound Yet
+
+After installation and valid Agent credentials, WorkBuddy should run:
+
+```bash
+mp-proxy onboarding
+mp-proxy accounts
+```
+
+If the response shows no bound accounts, WorkBuddy should guide the customer to retrieve their WeChat Official Account AppID and AppSecret.
+
+Use this customer-facing message:
+
+```text
+你还没有绑定公众号。请由公众号管理员登录微信公众平台，进入 设置与开发 → 基本配置，复制开发者ID(AppID) 和 开发者密码(AppSecret)。如果 AppSecret 页面不显示，需要按微信提示启用或重置后立即复制。拿到后告诉我：账号简称、机构名称、AppID、AppSecret，我会帮你完成绑定。
+```
+
+When the customer provides the values, WorkBuddy should run:
+
+```bash
+mp-proxy bind-account <accountName> <appid> <appsecret> <tenant>
+```
+
+After binding, WorkBuddy should confirm by running:
+
+```bash
+mp-proxy accounts
+mp-proxy status
+```
+
+Do not ask the customer for any service-side credentials. The customer only provides their own公众号 AppID/AppSecret.
+
 ## Add Or Bind A WeChat Official Account
 
 When the customer says any of the following, WorkBuddy should bind a公众号:

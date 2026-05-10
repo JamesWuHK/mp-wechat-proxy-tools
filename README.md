@@ -58,6 +58,35 @@ MP_AGENT_KEY=...
 MP_AGENT_SIGNING_SECRET=...
 ```
 
+
+## If Onboarding Returns `invalid agent`
+
+The CLI is installed, but the Agent credentials in `~/.mp-wechat-proxy/.env` are not valid server-side credentials. Ask the service operator to generate real values for:
+
+```text
+MP_AGENT_ID
+MP_AGENT_KEY
+MP_AGENT_SIGNING_SECRET
+```
+
+Then update `~/.mp-wechat-proxy/.env` and run:
+
+```bash
+mp-proxy doctor
+mp-proxy onboarding
+```
+
+Do not proceed to `mp-proxy bind-account` until onboarding succeeds.
+
+
+## No公众号 Bound Yet
+
+If `mp-proxy onboarding` or `mp-proxy accounts` shows no bound公众号, WorkBuddy should ask the customer to retrieve AppID/AppSecret from 微信公众平台 → 设置与开发 → 基本配置, then run:
+
+```bash
+mp-proxy bind-account school-a wx... appsecret... 某机构
+```
+
 ## Add A公众号
 
 WorkBuddy should add a customer公众号 with the customer-safe agent command:
