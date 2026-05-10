@@ -114,7 +114,7 @@ appsecret: WeChat Official Account AppSecret
 If the customer does not know where to find AppID/AppSecret, say:
 
 ```text
-请登录微信公众平台，进入 设置与开发 → 基本配置，复制开发者ID(AppID) 和 开发者密码(AppSecret)。AppSecret 只在当前绑定流程中使用，不要发到无关群聊。
+请由公众号管理员登录微信公众平台，进入 设置与开发 → 基本配置，复制开发者ID(AppID) 和 开发者密码(AppSecret)。如果 AppSecret 页面不显示，需要按微信提示启用或重置后立即复制。AppSecret 只在当前绑定流程中使用，不要发到无关群聊。
 ```
 
 Then run:
@@ -191,4 +191,3 @@ The WorkBuddy install is missing agent credentials. Ask the service operator to 
 ### `401 invalid agent` or `invalid agent key`
 
 The agent credentials are wrong, expired, suspended, or revoked. Ask the service operator to rotate or reactivate the Agent.
-

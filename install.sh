@@ -26,12 +26,13 @@ if [ "$NODE_MAJOR" -lt 18 ]; then
   exit 1
 fi
 
-if [ -d "$INSTALL_DIR/.git" ]; then
-  git -C "$INSTALL_DIR" pull --ff-only
-else
-  rm -rf "$INSTALL_DIR"
-  git clone "$REPO_URL" "$INSTALL_DIR"
+if [ -d "$INSTALL_DIR" ]; then
+  BACKUP_DIR="$INSTALL_DIR.backup.$(date +%Y%m%d%H%M%S)"
+  mv "$INSTALL_DIR" "$BACKUP_DIR"
+  echo "Backed up existing install to $BACKUP_DIR"
 fi
+
+git clone --depth 1 "$REPO_URL" "$INSTALL_DIR"
 
 cd "$INSTALL_DIR"
 node bin/mp-proxy.js setup
@@ -48,4 +49,4 @@ fi
 echo "Next steps:"
 echo "1. Edit $INSTALL_DIR/.env"
 echo "2. Put MP_AGENT_ID, MP_AGENT_KEY, and MP_AGENT_SIGNING_SECRET in $INSTALL_DIR/.env"
-echo "3. Run: mp-proxy onboarding  OR  node $INSTALL_DIR/bin/mp-proxy.js onboarding"
+echo "3. Run: mp-proxy doctor && mp-proxy onboarding  OR  node $INSTALL_DIR/bin/mp-proxy.js doctor"

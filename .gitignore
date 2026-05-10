@@ -1,9 +1,4 @@
 .env
-accounts.json
-agents.json
-reminders.json
-billing/
-wechat-pay/
 node_modules/
 npm-debug.log*
 yarn-debug.log*

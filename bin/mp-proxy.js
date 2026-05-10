@@ -21,6 +21,7 @@ Usage:
   mp-proxy create-order ACCOUNT MONTHS
   mp-proxy order ORDER_ID
   mp-proxy agent METHOD PATH [JSON]
+  mp-proxy doctor
 
 Required customer/WorkBuddy credentials:
   MP_AGENT_ID
@@ -114,11 +115,11 @@ function parseBody(jsonArg) {
 
 function agentCredentials() {
   const env = readEnv();
-  const agentId = env.MP_AGENT_ID || env.agentId;
-  const agentKey = env.MP_AGENT_KEY || env.agentKey;
-  const signingSecret = env.MP_AGENT_SIGNING_SECRET || env.signingSecret;
+  const agentId = env.MP_AGENT_ID;
+  const agentKey = env.MP_AGENT_KEY;
+  const signingSecret = env.MP_AGENT_SIGNING_SECRET;
   if (!agentId || !agentKey || !signingSecret) {
-    fail("Missing MP_AGENT_ID, MP_AGENT_KEY, or MP_AGENT_SIGNING_SECRET. Ask the service operator for WorkBuddy agent credentials and put them in .env.");
+    fail("Missing MP_AGENT_ID, MP_AGENT_KEY, or MP_AGENT_SIGNING_SECRET. Ask the service operator for WorkBuddy Agent credentials and put MP_AGENT_ID, MP_AGENT_KEY, and MP_AGENT_SIGNING_SECRET in .env.");
   }
   return { agentId, agentKey, signingSecret };
 }
@@ -182,6 +183,21 @@ async function test() {
   await agentRequest("GET", "/agent/onboarding");
 }
 
+function doctor() {
+  const env = readEnv();
+  const checks = {
+    cli: "agent-only",
+    baseUrl: baseUrl(),
+    envPath: envPath(),
+    hasAgentId: !!env.MP_AGENT_ID,
+    hasAgentKey: !!env.MP_AGENT_KEY,
+    hasAgentSigningSecret: !!env.MP_AGENT_SIGNING_SECRET,
+    deprecatedCommandsRemoved: true,
+  };
+  console.log(JSON.stringify(checks, null, 2));
+}
+
+
 async function main() {
   const args = process.argv.slice(2);
   const command = args.shift();
@@ -189,6 +205,7 @@ async function main() {
   if (command === "setup") return setupRuntime();
   if (command === "health") return health();
   if (command === "test") return test();
+  if (command === "doctor") return doctor();
   if (command === "onboarding") return agentRequest("GET", "/agent/onboarding");
   if (command === "status") return agentRequest("GET", "/agent/status");
   if (command === "accounts") return agentRequest("GET", "/agent/accounts");
