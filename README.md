@@ -34,6 +34,12 @@ Share this page with WorkBuddy:
 https://github.com/JamesWuHK/mp-wechat-proxy-tools/blob/main/WORKBUDDY.md
 ```
 
+For a shorter command-only reference, point the agent to:
+
+```text
+https://github.com/JamesWuHK/mp-wechat-proxy-tools/blob/main/CLI_HELP.md
+```
+
 ## Install
 
 ```bash
@@ -84,6 +90,8 @@ mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
 mp-proxy onboarding
 mp-proxy accounts
 mp-proxy subscription
+mp-proxy publish-quota
+mp-proxy pricing
 ```
 
 For additional公众号 after signup, WorkBuddy should ask the customer to retrieve `AppID` and `AppSecret` from 微信公众平台 → 设置与开发 → 基本配置, then run:

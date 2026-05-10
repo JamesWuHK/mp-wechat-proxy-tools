@@ -221,6 +221,16 @@ fetch("http://127.0.0.1:${port}/admin/pricing", {
     assert.strictEqual(afterBody.data.pricing.firstMonthPriceCents, 1888);
     assert.strictEqual(afterBody.data.pricing.recurringMonthPriceCents, 3999);
     assert.strictEqual(afterBody.data.pricing.extraAccountMonthlyPriceCents, 666);
+
+    const quotaAlias = await runCli(["publish-quota"]);
+    assert.strictEqual(quotaAlias.code, 0, quotaAlias.stderr);
+    const quotaBody = JSON.parse(quotaAlias.stdout);
+    assert.strictEqual(quotaBody.data.pricing.firstMonthPriceCents, 1888);
+
+    const pricingAlias = await runCli(["pricing"]);
+    assert.strictEqual(pricingAlias.code, 0, pricingAlias.stderr);
+    const pricingBody = JSON.parse(pricingAlias.stdout);
+    assert.strictEqual(pricingBody.data.pricing.recurringMonthPriceCents, 3999);
   } finally {
     child.kill("SIGTERM");
   }

@@ -27,6 +27,7 @@ The public tools repository contains:
 - `bin/mp-proxy.js` - agent-only CLI
 - `install.sh` - one-command installer
 - `WORKBUDDY.md` - this guide
+- `CLI_HELP.md` - short command-oriented CLI reference for agents
 - `.env.example` - safe config template
 
 It intentionally does not contain the private API server source. The CLI calls the hosted service at `https://mp.wanli.wiki` by default.
@@ -99,6 +100,12 @@ mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
 mp-proxy onboarding
 mp-proxy accounts
 mp-proxy subscription
+```
+
+For the shortest command reference, read:
+
+```text
+CLI_HELP.md
 ```
 
 This is the default self-serve flow. The customer does not need a pre-created Agent credential package. The signup call creates the first bound公众号 and returns the Agent credentials automatically.
@@ -248,6 +255,8 @@ mp-proxy onboarding
 mp-proxy status
 mp-proxy accounts
 mp-proxy subscription
+mp-proxy publish-quota
+mp-proxy pricing
 mp-proxy subscribe 1
 mp-proxy bind-account school-a wx... appsecret... 某机构
 mp-proxy reminders

@@ -23,6 +23,8 @@ Usage:
   mp-proxy mark-reminder-sent REMINDER_ID
   mp-proxy create-order ACCOUNT MONTHS
   mp-proxy order ORDER_ID
+  mp-proxy publish-quota
+  mp-proxy pricing
   mp-proxy agent METHOD PATH [JSON]
   mp-proxy doctor
 
@@ -222,6 +224,14 @@ async function subscription() {
   return agentRequest("GET", "/agent/subscription");
 }
 
+async function publishQuota() {
+  return subscription();
+}
+
+async function pricing() {
+  return subscription();
+}
+
 async function subscribe(args) {
   const [months = "1"] = args;
   const parsedMonths = Number(months);
@@ -263,6 +273,8 @@ async function main() {
   if (command === "accounts") return agentRequest("GET", "/agent/accounts");
   if (command === "bind-account") return bindAccount(args);
   if (command === "subscription") return subscription();
+  if (command === "publish-quota") return publishQuota();
+  if (command === "pricing") return pricing();
   if (command === "subscribe") return subscribe(args);
   if (command === "reminders") return agentRequest("GET", "/agent/customer-reminders");
   if (command === "mark-reminder-sent") {
