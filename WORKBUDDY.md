@@ -31,6 +31,14 @@ The public tools repository contains:
 
 It intentionally does not contain the private API server source. The CLI calls the hosted service at `https://mp.wanli.wiki` by default.
 
+## Pricing
+
+- Free trial: bind your公众号 and publish up to 3 articles for free
+- First paid month: `¥9.90`
+- Second month onward: `¥29.90 / month`
+- Up to 2公众号 are included in the base monthly plan
+- More than 2公众号: `¥9.90 / month` for each extra公众号
+
 ## Requirements
 
 - git
@@ -79,14 +87,15 @@ If the user does not have these values, tell them:
 After installation, WorkBuddy should follow this main flow:
 
 ```bash
-mp-proxy --help
-mp-proxy doctor
-mp-proxy health
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
 mp-proxy onboarding
 mp-proxy accounts
+mp-proxy subscription
 ```
 
-If `mp-proxy accounts` shows no bound公众号, WorkBuddy should immediately guide the customer to retrieve their公众号 `AppID` and `AppSecret` from 微信公众平台 → 设置与开发 → 基本配置, then run:
+This is the default self-serve flow. The customer does not need a pre-created Agent credential package. The signup call creates the first bound公众号 and returns the Agent credentials automatically.
+
+For each additional公众号, WorkBuddy should immediately guide the customer to retrieve their公众号 `AppID` and `AppSecret` from 微信公众平台 → 设置与开发 → 基本配置, then run:
 
 ```bash
 mp-proxy bind-account <accountName> <appid> <appsecret> <tenant>
@@ -97,6 +106,7 @@ After binding, confirm with:
 ```bash
 mp-proxy accounts
 mp-proxy status
+mp-proxy subscription
 ```
 
 If `mp-proxy` is not globally available, use:
@@ -110,7 +120,7 @@ node ~/.mp-wechat-proxy/bin/mp-proxy.js health
 
 ## If `mp-proxy onboarding` Returns `invalid agent`
 
-This means the CLI installed correctly, but the Agent credentials in `~/.mp-wechat-proxy/.env` are not real server-side credentials, are expired, or were revoked.
+This means the CLI installed correctly, but the Agent credentials in `~/.mp-wechat-proxy/.env` are not real server-side credentials, are expired, or were revoked. In the normal self-serve flow this should only happen after `mp-proxy signup` already created real credentials and wrote them locally.
 
 WorkBuddy cannot fix this by asking the customer for any other key. WorkBuddy should not ask for service-side credentials.
 
@@ -222,10 +232,15 @@ If binding returns an error about credentials, tell the customer:
 # public health check, no credentials needed
 mp-proxy health
 
+# self-serve signup for first公众号
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
+
 # signed agent calls, require MP_AGENT_* credentials
 mp-proxy onboarding
 mp-proxy status
 mp-proxy accounts
+mp-proxy subscription
+mp-proxy subscribe 1
 mp-proxy bind-account school-a wx... appsecret... 某机构
 mp-proxy reminders
 mp-proxy mark-reminder-sent REMINDER_ID
@@ -240,8 +255,10 @@ mp-proxy agent POST /agent/accounts '{"name":"school-a","tenant":"某机构","ap
 ## Agent Behavior Rules
 
 2. Never display `MP_AGENT_KEY`, `MP_AGENT_SIGNING_SECRET`, AppSecret, or any token.
-3. Use `mp-proxy bind-account` to add a公众号.
-4. Use `mp-proxy status` to check service state.
+3. Use `mp-proxy signup` as the default first-step self-serve onboarding flow.
+4. Use `mp-proxy bind-account` to add additional公众号.
+5. Use `mp-proxy subscription` to explain free quota and paid pricing.
+6. Use `mp-proxy status` to check service state.
 5. If credentials are invalid, tell the customer to contact the service operator for new Agent credentials.
 
 ## Troubleshooting

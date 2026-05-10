@@ -12,10 +12,13 @@ function usage() {
 Usage:
   mp-proxy setup
   mp-proxy health
+  mp-proxy signup TENANT ACCOUNT_NAME APPID APPSECRET [DISPLAY_NAME]
   mp-proxy status
   mp-proxy onboarding
   mp-proxy accounts
   mp-proxy bind-account NAME APPID APPSECRET [TENANT]
+  mp-proxy subscription
+  mp-proxy subscribe MONTHS
   mp-proxy reminders
   mp-proxy mark-reminder-sent REMINDER_ID
   mp-proxy create-order ACCOUNT MONTHS
@@ -124,6 +127,17 @@ function agentCredentials() {
   return { agentId, agentKey, signingSecret };
 }
 
+function saveAgentCredentials(agentId, agentKey, signingSecret) {
+  const file = envPath();
+  const env = readEnv();
+  env.MP_AGENT_ID = agentId;
+  env.MP_AGENT_KEY = agentKey;
+  env.MP_AGENT_SIGNING_SECRET = signingSecret;
+  const keys = Object.keys(env).filter(Boolean).sort();
+  const content = `${keys.map((key) => `${key}=${env[key]}`).join("\n")}\n`;
+  writeFile600(file, content);
+}
+
 async function request(method, requestPath, headers = {}, body = Buffer.alloc(0), options = {}) {
   const response = await fetch(`${baseUrl()}${requestPath}`, {
     method,
@@ -148,6 +162,32 @@ function printBody(text) {
 
 async function health() {
   return request("GET", "/health");
+}
+
+async function signup(args) {
+  const [tenant, accountName, appid, appsecret, displayName = ""] = args;
+  if (!tenant || !accountName || !appid || !appsecret) {
+    fail("Usage: mp-proxy signup TENANT ACCOUNT_NAME APPID APPSECRET [DISPLAY_NAME]", 2);
+  }
+  const payload = {
+    tenant,
+    accountName,
+    appid,
+    appsecret,
+    displayName: displayName || tenant,
+    customerDisplayName: displayName || tenant,
+  };
+  const { response, text } = await request("POST", "/public/signup", {}, Buffer.from(JSON.stringify(payload), "utf8"));
+  if (response.status >= 400) return;
+  try {
+    const parsed = JSON.parse(text);
+    const credentials = parsed?.data?.credentials;
+    if (credentials?.agentId && credentials?.agentKey && credentials?.signingSecret) {
+      saveAgentCredentials(credentials.agentId, credentials.agentKey, credentials.signingSecret);
+    }
+  } catch (_) {
+    // keep response output as-is even if parse fails
+  }
 }
 
 async function agentRequest(method, agentPath, jsonArg) {
@@ -178,6 +218,17 @@ async function createOrder(args) {
   return agentRequest("POST", "/agent/billing/orders", JSON.stringify({ account, months: parsedMonths }));
 }
 
+async function subscription() {
+  return agentRequest("GET", "/agent/subscription");
+}
+
+async function subscribe(args) {
+  const [months = "1"] = args;
+  const parsedMonths = Number(months);
+  if (!Number.isInteger(parsedMonths) || parsedMonths < 1) fail("Usage: mp-proxy subscribe MONTHS", 2);
+  return agentRequest("POST", "/agent/billing/orders", JSON.stringify({ kind: "agent_subscription", months: parsedMonths }));
+}
+
 async function test() {
   await health();
   await agentRequest("GET", "/agent/onboarding");
@@ -204,12 +255,15 @@ async function main() {
   if (!command || command === "help" || command === "--help" || command === "-h") return usage();
   if (command === "setup") return setupRuntime();
   if (command === "health") return health();
+  if (command === "signup") return signup(args);
   if (command === "test") return test();
   if (command === "doctor") return doctor();
   if (command === "onboarding") return agentRequest("GET", "/agent/onboarding");
   if (command === "status") return agentRequest("GET", "/agent/status");
   if (command === "accounts") return agentRequest("GET", "/agent/accounts");
   if (command === "bind-account") return bindAccount(args);
+  if (command === "subscription") return subscription();
+  if (command === "subscribe") return subscribe(args);
   if (command === "reminders") return agentRequest("GET", "/agent/customer-reminders");
   if (command === "mark-reminder-sent") {
     const [id] = args;

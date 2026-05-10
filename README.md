@@ -10,6 +10,14 @@ This public repository intentionally does **not** contain:
 
 It only contains the customer/WorkBuddy CLI that calls the hosted `/agent/...` APIs with agent credentials.
 
+## Pricing
+
+- Free trial: bind your公众号 and publish up to 3 articles for free
+- First paid month: `¥9.90`
+- Second month onward: `¥29.90 / month`
+- Up to 2公众号 are included in the base monthly plan
+- More than 2公众号: `¥9.90 / month` for each extra公众号
+
 ## WorkBuddy Entry Point
 
 Share this page with WorkBuddy:
@@ -64,22 +72,16 @@ MP_AGENT_SIGNING_SECRET=...
 After installation, WorkBuddy should follow this main flow:
 
 ```bash
-mp-proxy doctor
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
 mp-proxy onboarding
 mp-proxy accounts
+mp-proxy subscription
 ```
 
-If no公众号 is bound yet, WorkBuddy should immediately ask the customer to retrieve `AppID` and `AppSecret` from 微信公众平台 → 设置与开发 → 基本配置, then run:
+For additional公众号 after signup, WorkBuddy should ask the customer to retrieve `AppID` and `AppSecret` from 微信公众平台 → 设置与开发 → 基本配置, then run:
 
 ```bash
-mp-proxy bind-account school-a wx... appsecret... 某机构
-```
-
-After binding, verify:
-
-```bash
-mp-proxy accounts
-mp-proxy status
+mp-proxy bind-account school-b wx... appsecret... 某机构
 ```
 
 ## If Onboarding Returns `invalid agent`
@@ -115,16 +117,20 @@ Then verify:
 ```bash
 mp-proxy accounts
 mp-proxy status
+mp-proxy subscription
 ```
 
 ## CLI
 
 ```bash
+mp-proxy signup "某机构" school-a wx... appsecret... "某机构"
 mp-proxy --help
 mp-proxy health
 mp-proxy onboarding
 mp-proxy status
 mp-proxy accounts
+mp-proxy subscription
+mp-proxy subscribe 1
 mp-proxy bind-account school-a wx... appsecret... 某机构
 mp-proxy reminders
 mp-proxy create-order school-a 1
