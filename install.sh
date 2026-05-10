@@ -49,4 +49,5 @@ fi
 echo "Next steps:"
 echo "1. Edit $INSTALL_DIR/.env"
 echo "2. Put MP_AGENT_ID, MP_AGENT_KEY, and MP_AGENT_SIGNING_SECRET in $INSTALL_DIR/.env"
-echo "3. Run: mp-proxy doctor && mp-proxy onboarding  OR  node $INSTALL_DIR/bin/mp-proxy.js doctor"
+echo "3. Run: mp-proxy doctor && mp-proxy onboarding && mp-proxy accounts"
+echo "4. If no公众号 is bound yet, ask the customer for公众号 AppID/AppSecret and run: mp-proxy bind-account <accountName> <appid> <appsecret> <tenant>"

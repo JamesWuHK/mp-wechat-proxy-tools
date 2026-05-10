@@ -74,17 +74,32 @@ If the user does not have these values, tell them:
 请联系服务方为你的 WorkBuddy 生成 Agent 凭据。
 ```
 
-## Verify CLI Installation
+## Main Flow
 
-From this file, WorkBuddy should know it can install the CLI with the command in the Install section. After installation, verify with:
+After installation, WorkBuddy should follow this main flow:
 
 ```bash
 mp-proxy --help
+mp-proxy doctor
 mp-proxy health
 mp-proxy onboarding
+mp-proxy accounts
 ```
 
-If `mp-proxy` is not globally available:
+If `mp-proxy accounts` shows no bound公众号, WorkBuddy should immediately guide the customer to retrieve their公众号 `AppID` and `AppSecret` from 微信公众平台 → 设置与开发 → 基本配置, then run:
+
+```bash
+mp-proxy bind-account <accountName> <appid> <appsecret> <tenant>
+```
+
+After binding, confirm with:
+
+```bash
+mp-proxy accounts
+mp-proxy status
+```
+
+If `mp-proxy` is not globally available, use:
 
 ```bash
 node ~/.mp-wechat-proxy/bin/mp-proxy.js --help
@@ -139,44 +154,9 @@ mp-proxy onboarding
 mp-proxy status
 ```
 
-Only after `mp-proxy onboarding` succeeds should WorkBuddy ask the customer for公众号 AppID/AppSecret and run `mp-proxy bind-account`.
-
-
-## If No Official Account Is Bound Yet
-
-After installation and valid Agent credentials, WorkBuddy should run:
-
-```bash
-mp-proxy onboarding
-mp-proxy accounts
-```
-
-If the response shows no bound accounts, WorkBuddy should guide the customer to retrieve their WeChat Official Account AppID and AppSecret.
-
-Use this customer-facing message:
-
-```text
-你还没有绑定公众号。请由公众号管理员登录微信公众平台，进入 设置与开发 → 基本配置，复制开发者ID(AppID) 和 开发者密码(AppSecret)。如果 AppSecret 页面不显示，需要按微信提示启用或重置后立即复制。拿到后告诉我：账号简称、机构名称、AppID、AppSecret，我会帮你完成绑定。
-```
-
-When the customer provides the values, WorkBuddy should run:
-
-```bash
-mp-proxy bind-account <accountName> <appid> <appsecret> <tenant>
-```
-
-After binding, WorkBuddy should confirm by running:
-
-```bash
-mp-proxy accounts
-mp-proxy status
-```
-
-Do not ask the customer for any service-side credentials. The customer only provides their own公众号 AppID/AppSecret.
-
 ## Add Or Bind A WeChat Official Account
 
-When the customer says any of the following, WorkBuddy should bind a公众号:
+When the customer has not yet bound a公众号, or says any of the following, WorkBuddy should start the binding flow:
 
 - “添加公众号”
 - “绑定公众号”
@@ -193,7 +173,7 @@ appid: WeChat Official Account AppID, usually starts with wx
 appsecret: WeChat Official Account AppSecret
 ```
 
-If the customer does not know where to find AppID/AppSecret, say:
+WorkBuddy should proactively ask the customer to retrieve `AppID` and `AppSecret` from the公众号后台. If the customer does not know where to find them, say:
 
 ```text
 请由公众号管理员登录微信公众平台，进入 设置与开发 → 基本配置，复制开发者ID(AppID) 和 开发者密码(AppSecret)。如果 AppSecret 页面不显示，需要按微信提示启用或重置后立即复制。AppSecret 只在当前绑定流程中使用，不要发到无关群聊。
