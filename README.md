@@ -58,6 +58,21 @@ MP_AGENT_KEY=...
 MP_AGENT_SIGNING_SECRET=...
 ```
 
+## Add A公众号
+
+WorkBuddy should add a customer公众号 with the customer-safe agent command:
+
+```bash
+mp-proxy bind-account school-a wx... appsecret... 某机构
+```
+
+Then verify:
+
+```bash
+mp-proxy accounts
+mp-proxy status
+```
+
 ## CLI
 
 ```bash

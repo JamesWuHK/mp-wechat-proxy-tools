@@ -74,7 +74,9 @@ If the user does not have these values, tell them:
 请联系服务方为你的 WorkBuddy 生成 Agent 凭据。
 ```
 
-## Verify
+## Verify CLI Installation
+
+From this file, WorkBuddy should know it can install the CLI with the command in the Install section. After installation, verify with:
 
 ```bash
 mp-proxy --help
@@ -87,6 +89,69 @@ If `mp-proxy` is not globally available:
 ```bash
 node ~/.mp-wechat-proxy/bin/mp-proxy.js --help
 node ~/.mp-wechat-proxy/bin/mp-proxy.js health
+```
+
+
+## Add Or Bind A WeChat Official Account
+
+When the customer says any of the following, WorkBuddy should bind a公众号:
+
+- “添加公众号”
+- “绑定公众号”
+- “接入公众号”
+- “我的 AppID 是 ...”
+- “这是 AppSecret ...”
+
+WorkBuddy must collect these fields:
+
+```text
+accountName: short lowercase account name, for example school-a
+tenant: customer or organization display name
+appid: WeChat Official Account AppID, usually starts with wx
+appsecret: WeChat Official Account AppSecret
+```
+
+If the customer does not know where to find AppID/AppSecret, say:
+
+```text
+请登录微信公众平台，进入 设置与开发 → 基本配置，复制开发者ID(AppID) 和 开发者密码(AppSecret)。AppSecret 只在当前绑定流程中使用，不要发到无关群聊。
+```
+
+Then run:
+
+```bash
+mp-proxy bind-account <accountName> <appid> <appsecret> <tenant>
+```
+
+Example:
+
+```bash
+mp-proxy bind-account school-a wx1234567890abcdef appsecret_here 某某学校
+```
+
+Equivalent advanced call:
+
+```bash
+mp-proxy agent POST /agent/accounts '{"name":"school-a","tenant":"某某学校","appid":"wx1234567890abcdef","appsecret":"appsecret_here"}'
+```
+
+After binding, verify with:
+
+```bash
+mp-proxy accounts
+mp-proxy status
+```
+
+If binding succeeds, tell the customer:
+
+```text
+公众号信息已保存。我已经为你绑定了这个公众号，接下来可以查询服务状态、查看到期提醒或创建续费订单。
+```
+
+If binding returns an error about credentials, tell the customer:
+
+```text
+公众号 AppID 或 AppSecret 可能不正确，请重新检查微信公众平台“设置与开发 → 基本配置”中的 AppID 和 AppSecret。
 ```
 
 ## Customer-Safe Commands
