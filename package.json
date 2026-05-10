@@ -1,0 +1,15 @@
+{
+  "name": "mp-wechat-proxy-tools",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Public WorkBuddy and CLI tools for mp-wechat-proxy.",
+  "bin": {
+    "mp-proxy": "bin/mp-proxy.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
