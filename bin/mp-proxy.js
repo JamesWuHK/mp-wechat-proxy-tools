@@ -25,7 +25,7 @@ Usage:
   mp-proxy order ORDER_ID
   mp-proxy publish-quota
   mp-proxy pricing
-  mp-proxy agent METHOD PATH [JSON]
+  mp-proxy agent METHOD PATH [JSON | --file FILE]
   mp-proxy doctor
 
 Required customer/WorkBuddy credentials:
@@ -213,6 +213,37 @@ async function agentRequest(method, agentPath, jsonArg) {
   }, body);
 }
 
+async function agentUpload(method, agentPath, filePath) {
+  const credentials = agentCredentials();
+  const normalizedPath = agentPath.startsWith("/agent/") ? agentPath : `/agent/${agentPath.replace(/^\//, "")}`;
+  if (!fs.existsSync(filePath)) fail(`File not found: ${filePath}`);
+  const fileData = fs.readFileSync(filePath);
+  const fileName = path.basename(filePath);
+  const boundary = `----MPProxy${crypto.randomBytes(16).toString("hex")}`;
+  const parts = [];
+  parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="media"; filename="${fileName}"\r\nContent-Type: application/octet-stream\r\n\r\n`));
+  parts.push(fileData);
+  parts.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+  const body = Buffer.concat(parts);
+  const auth = sign(credentials.signingSecret, method, normalizedPath, body);
+  const response = await fetch(`${baseUrl()}${normalizedPath}`, {
+    method,
+    headers: {
+      "X-Agent-Id": credentials.agentId,
+      "X-Agent-Key": credentials.agentKey,
+      "X-Sign-Timestamp": auth.timestamp,
+      "X-Sign-Nonce": auth.nonce,
+      "X-Signature": auth.signature,
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body,
+  });
+  const text = await response.text();
+  printBody(text);
+  if (response.status >= 400) process.exitCode = 1;
+  return { response, text };
+}
+
 async function bindAccount(args) {
   const [name, appid, appsecret, tenant = ""] = args;
   if (!name || !appid || !appsecret) fail("Usage: mp-proxy bind-account NAME APPID APPSECRET [TENANT]", 2);
@@ -296,8 +327,17 @@ async function main() {
     return agentRequest("GET", `/agent/billing/orders/${id}`);
   }
   if (command === "agent") {
+    const fileIdx = args.indexOf("--file");
+    let filePath = null;
+    if (fileIdx !== -1) {
+      filePath = args[fileIdx + 1];
+      args.splice(fileIdx, 2);
+    }
     const [method, agentPath, jsonArg] = args;
-    if (!method || !agentPath) fail("Usage: mp-proxy agent METHOD PATH [JSON]", 2);
+    if (!method || !agentPath) fail("Usage: mp-proxy agent METHOD PATH [JSON | --file FILE]", 2);
+    if (filePath) {
+      return agentUpload(method.toUpperCase(), agentPath, filePath);
+    }
     return agentRequest(method.toUpperCase(), agentPath, jsonArg);
   }
   fail(`Unknown command: ${command}`, 2);

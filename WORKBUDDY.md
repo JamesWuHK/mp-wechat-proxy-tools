@@ -144,10 +144,13 @@ mp-proxy create-order <account> <months>  # create renewal order
 mp-proxy order <ORDER_ID>    # check order status
 ```
 
-## CLI Limitations
+## File Uploads
 
-- `mp-proxy agent` only supports JSON body. Multipart file uploads (e.g. uploading images/media to WeChat) are not supported through the CLI.
-- For operations requiring file uploads, use the WeChat Official Account backend directly or contact the service operator.
+For file uploads (e.g. uploading images/media to WeChat), use `--file`:
+
+```bash
+mp-proxy agent POST /agent/media/upload?type=image --file ./photo.jpg
+```
 
 ## All Available Commands
 
@@ -163,7 +166,7 @@ mp-proxy reminders
 mp-proxy mark-reminder-sent REMINDER_ID
 mp-proxy create-order ACCOUNT MONTHS
 mp-proxy order ORDER_ID
-mp-proxy agent METHOD PATH [JSON]
+mp-proxy agent METHOD PATH [JSON | --file FILE]
 ```
 
 ## Agent Behavior Rules
