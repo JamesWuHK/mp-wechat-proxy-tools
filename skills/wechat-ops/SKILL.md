@@ -151,7 +151,7 @@ bun <baoyu-post-to-wechat>/scripts/wechat-api.ts article.md --dry-run
 ### 5.1 API 方式发布命令
 
 ```bash
-bun .../wechat-api.ts article.md \
+bun <baoyu-post-to-wechat>/scripts/wechat-api.ts article.md \
   --theme modern --author "作者" --cover cover.png \
   --product-link "https://store.weixin.qq.com/..." \
   --product-text "课程名 · ¥199 →"
