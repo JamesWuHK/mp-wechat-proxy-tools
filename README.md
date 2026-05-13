@@ -25,23 +25,29 @@ curl -fsSL https://raw.githubusercontent.com/JamesWuHK/mp-wechat-proxy-tools/mai
   | sh -s -- https://github.com/JamesWuHK/mp-wechat-proxy-tools.git
 ```
 
-## Main Flow
+## Main Flow (new user)
 
 1. Install CLI
-2. Configure Agent credentials in `~/.mp-wechat-proxy/.env`
-3. Bind customer公众号: ask customer for AppID/AppSecret from 微信公众平台 → 设置与开发 → 基本配置
-4. Run `mp-proxy bind-account <name> <appid> <appsecret> <tenant>`
-5. Verify with `mp-proxy accounts` and `mp-proxy status`
+2. Run `mp-proxy signup <tenant> <account> <appid> <appsecret> [display_name]`
+   - AppID / AppSecret from 微信公众平台 → 设置与开发 → 基本配置
+   - Signup writes Agent credentials into `~/.mp-wechat-proxy/.env` automatically
+3. Verify with `mp-proxy accounts` and `mp-proxy status`
 
 ## CLI
 
 ```bash
+mp-proxy setup
 mp-proxy health
-mp-proxy doctor
+mp-proxy signup 某机构 school-a wx... appsecret...
 mp-proxy onboarding
 mp-proxy status
 mp-proxy accounts
+mp-proxy doctor
 mp-proxy bind-account school-a wx... appsecret... 某机构
+mp-proxy subscription
+mp-proxy subscribe 12
+mp-proxy publish-quota
+mp-proxy pricing
 mp-proxy reminders
 mp-proxy create-order school-a 1
 mp-proxy order ORDER_ID
